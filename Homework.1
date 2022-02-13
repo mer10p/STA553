@@ -1,0 +1,70 @@
+---
+title: "Homework.1"
+author: "Merritt Ebner"
+date: "2/11/2022"
+output: html_document
+---
+
+```{r}
+install.packages("jpeg")
+library("jpeg")
+install.packages("patchwork")
+library("patchwork")
+install.packages("tidyverse")
+library("tidyverse")
+```
+
+```{r}
+penguin <- read.csv('w02-penguins.csv')
+```
+
+```{r}
+head(penguin)
+```
+
+```{r}
+peng_plot <- ggplot(data = penguin)+
+  geom_point(mapping = aes(bill_length_mm, flipper_length_mm,color=species,size=body_mass_g))
+peng_plot
+
+ppl <- peng_plot+labs(x="Bill Length mm",y="Flipper Length mm",
+                      title = "Bill Length to Flipper Length with Body Mass By Species")
+ppl
+```
+
+```{r}
+download.file("https://www.antarctica.gov.au/site/assets/files/45567/rs31765_kings_in_waves_gg_feb_2016_kk.1600x0.jpg",
+              "penguin.jpg",
+              mode = "wb")
+
+my_image1 <-  readJPEG("penguin.jpg")  
+raster.peng <- as.raster(my_image1)
+```
+
+```{r}
+img_graph2 <- ppl +                  
+  inset_element(p = raster.peng,
+                left = 0.05,
+                bottom = 0.65,
+                right = 0.25,
+                top = 0.95)  
+img_graph2
+```
+
+
+```{r}
+ggplot(data=penguin,mapping=aes(bill_length_mm,flipper_length_mm,color=species,size=body_mass_g))+
+  geom_point(mapping = aes(color=species))+
+  geom_smooth(
+    data=filter(penguin,species=='Adelie'),
+    se=F
+  )+
+  geom_smooth(
+    data=filter(penguin,species=='Chinstrap'),
+    se=F
+  )+
+  geom_smooth(
+    data=filter(penguin,species=='Gentoo'),
+    se=F
+  )
+```
