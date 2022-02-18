@@ -1,1 +1,88 @@
 file:///E:/STA553/Week.2/HW1.html
+
+Penguin
+Merritt Ebner
+2/10/2022
+library("jpeg")
+## Warning: package 'jpeg' was built under R version 4.1.1
+library("patchwork")
+## Warning: package 'patchwork' was built under R version 4.1.2
+library("tidyverse")
+## Warning: package 'tidyverse' was built under R version 4.1.2
+## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+## v ggplot2 3.3.5     v purrr   0.3.4
+## v tibble  3.1.2     v dplyr   1.0.8
+## v tidyr   1.2.0     v stringr 1.4.0
+## v readr   1.4.0     v forcats 0.5.1
+## Warning: package 'ggplot2' was built under R version 4.1.1
+## Warning: package 'tidyr' was built under R version 4.1.2
+## Warning: package 'dplyr' was built under R version 4.1.2
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+library("htmltools")
+## Warning: package 'htmltools' was built under R version 4.1.2
+penguin <- read.csv('w02-penguins.csv')
+head(penguin)
+##   X species    island bill_length_mm bill_depth_mm flipper_length_mm
+## 1 1  Adelie Torgersen           39.1          18.7               181
+## 2 2  Adelie Torgersen           39.5          17.4               186
+## 3 3  Adelie Torgersen           40.3          18.0               195
+## 4 4  Adelie Torgersen             NA            NA                NA
+## 5 5  Adelie Torgersen           36.7          19.3               193
+## 6 6  Adelie Torgersen           39.3          20.6               190
+##   body_mass_g    sex year
+## 1        3750   male 2007
+## 2        3800 female 2007
+## 3        3250 female 2007
+## 4          NA   <NA> 2007
+## 5        3450 female 2007
+## 6        3650   male 2007
+peng_plot <- ggplot(data = penguin)+
+  geom_point(mapping = aes(bill_length_mm, flipper_length_mm,color=species,size=body_mass_g))
+peng_plot
+## Warning: Removed 2 rows containing missing values (geom_point).
+
+
+ppl <- peng_plot+labs(x="Bill Length mm",y="Flipper Length mm",
+                      title = "Bill Length to Flipper Length with Body Mass By Species")
+ppl
+## Warning: Removed 2 rows containing missing values (geom_point).
+
+
+download.file("https://www.antarctica.gov.au/site/assets/files/45567/rs31765_kings_in_waves_gg_feb_2016_kk.1600x0.jpg",
+              "penguin.jpg",
+              mode = "wb")
+
+my_image1 <-  readJPEG("penguin.jpg")  
+raster.peng <- as.raster(my_image1)
+img_graph2 <- ppl +                  
+  inset_element(p = raster.peng,
+                left = 0.05,
+                bottom = 0.65,
+                right = 0.25,
+                top = 0.95)  
+img_graph2
+## Warning: Removed 2 rows containing missing values (geom_point).
+
+
+ggplot(data=penguin,mapping=aes(bill_length_mm,flipper_length_mm,color=species,size=body_mass_g))+
+  geom_point(mapping = aes(color=species))+
+  geom_smooth(
+    data=filter(penguin,species=='Adelie'),
+    se=F
+  )+
+  geom_smooth(
+    data=filter(penguin,species=='Chinstrap'),
+    se=F
+  )+
+  geom_smooth(
+    data=filter(penguin,species=='Gentoo'),
+    se=F
+  )
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+## Warning: Removed 1 rows containing non-finite values (stat_smooth).
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+## Warning: Removed 1 rows containing non-finite values (stat_smooth).
+## Warning: Removed 2 rows containing missing values (geom_point).
