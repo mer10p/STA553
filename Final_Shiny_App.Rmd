@@ -1,0 +1,166 @@
+---
+title: "Student Performance"
+author: "Merritt Ebner"
+date: '2022-05-17'
+output: html_document
+runtime: shiny
+---
+
+
+```{r}
+library(shiny)
+library(shinydashboard)
+```
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+student1 = read.csv("https://raw.githubusercontent.com/mer10p/data_sets/main/student-por.csv", header = TRUE)
+student_data <- student1 %>%
+  select(sex,address,traveltime,studytime,famrel,freetime,goout,health,
+         absences,G1,G2,G3)
+student_data$address <- ifelse(student_data$address=="U","Urban","Rural")
+y.names = names(student_data[,10:12])
+x.names = names(student_data[,3:9])
+add = unique(student_data$address)
+
+# Explanation of Y variables: G1 = Student grades for first half of year.
+                            # G2 = Student grades for second half of year.
+                            # G3 = Final grade. 
+```
+
+
+```{r}
+header0 <- dashboardHeader(title = "Student Data Summary")
+ #####
+ sider0 <- dashboardSidebar(
+               sidebarMenu(
+                     menuItem("Student", tabName = "Student", icon = icon("tree")),
+                     hr(),
+                     selectInput("feature", "Grade",
+                           c("G1",  "G2"),
+                           selected = "G1"),
+                     hr(),
+                     radioButtons("address", "Address",
+                           c("Rural", "Urban"),
+                           selected = "Rural",
+                           ),
+                     hr(),
+                      HTML('<p><center><img src="https://github.com/pengdsci/sta553/blob/main/image/goldenRamLogo.png?raw=true"  
+                           width="80" height="80"></center></p>'),
+            HTML('<p style="font-family:Courier; color:Red; font-size: 20px;"><center>
+                 <font size =2> <a href="mailto:me896631@wcupa.edu">
+                 <font color="gold">Report bugs to M. Ebner </font></a> </font></center></p>')
+                ),
+            hr(),
+              tags$head(
+    tags$style(HTML(".skin-blue .main-sidebar {background-color:  skyblue;}"))
+  )
+            )
+ 
+ 
+ 
+ #####
+ body0 <- dashboardBody(
+        fluidRow(
+             box( title = "Individual Grade: Scatter Plot", 
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  collapsible = TRUE,
+                  plotOutput("correlation1"), width=6),
+             box(title = "All Address: Scatter Plot", 
+                 status = "primary", 
+                 solidHeader = TRUE,
+                 collapsible = TRUE,
+                 plotOutput("overallplot"),width=6)  # scatter plot all three species
+           ),
+         fluidRow(
+             box( title = "Individual Grade: Linear Regression", 
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  collapsible = TRUE,
+                  tableOutput("reg_ind"), width=6),
+             box(title = "All Address: Linear Regression", 
+                 status = "primary", 
+                 solidHeader = TRUE,
+                 collapsible = TRUE,
+                 tableOutput("reg_all"),width=6)  # scatter plot all three species
+           ), 
+ )
+
+## UI
+ui <- dashboardPage(header = header0,
+                    sidebar = sider0,
+                    body = body0)
+
+
+
+
+
+
+
+## server
+server <- function(input, output){
+   ## adding a color code to the iris data based on the species
+   #student_data$color <-sort(rep(c("red","blue",649)))
+   ## reactive() function is used to select rows based on the
+   ## input row (species).
+   student_data0 <- reactive({
+     sub.student_data <- student_data[which(student_data$address == input$address),]   
+     sub.student_data
+      })
+   ####
+   output$correlation1 <- renderPlot(
+     #mydata <- iris0(),
+     plot(student_data0()$G3, student_data0()[[input$feature]],
+          pch=16,
+          ylim=c(0.8*min(student_data0()[[input$feature]]), 1.2*max(student_data0()[[input$feature]])),
+          #col = student_data()$color,   # add color to the points
+          xlab = "G3",
+          ylab = input$feature,
+          main=paste("G3 vs ", input$feature),
+          cex.main = 0.7,
+          ### add correlation coefficients and regression line
+          text(mean(range(student_data0()$G3)), 1.15*max(student_data0()[[input$feature]]), 
+               paste0("Correlation coefficient: r = ", 
+                       round(cor(student_data0()$G3,student_data0()[[input$feature]]),3), 
+                      "\n Address: ", as.character(unique(student_data0()$address))), 
+                                          col = "purple", cex = 0.8)
+          )
+     )
+   ### overall plot
+   output$overallplot <- renderPlot(
+     # use the original data file,
+     plot(student_data$G3, student_data[[input$feature]], 
+          pch=16,
+          ylim=c(0.8*min(student_data[[input$feature]]), 1.2*max(student_data[[input$feature]])),
+          col = "red",
+          xlab = "G3",
+          ylab = input$feature,
+          main=paste("G3 vs ", input$feature),
+          cex.main = 0.7,
+          text(mean(range(student_data$G3)), 1.15*max(student_data[[input$address]]), 
+               paste0("Correlation coefficient: r = ", 
+                                    round(cor(student_data$G3,student_data[[input$feature]]),3)), 
+                                          col = "purple", cex = 0.8)
+          )
+     )
+   ### individual linear regression
+   output$reg_ind <- renderTable(
+      #reg1 <- coef(summary(lm(iris0()[[input$feature]] ~ iris0()$Sepal.Length))),
+      coef(summary(lm(student_data0()[[input$feature]] ~ student_data0()$G3)))
+      )
+   ### regression models based on all species
+   output$reg_all <- renderTable(
+      #reg1 <- coef(summary(lm(iris0()[[input$feature]] ~ iris0()$Sepal.Length))),
+      coef(summary(lm(student_data[[input$feature]] ~ student_data$G3)))
+      )
+}
+## link
+shinyApp(ui, server)
+```
+
